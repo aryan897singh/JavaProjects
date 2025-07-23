@@ -14,6 +14,21 @@ public class SwissArmyCalc {
    double results[] = new double[opcodes.length];
    //ABOVE USED FOR DEFAULT
 
+   MathEquation[] equations = new MathEquation[Lvalues.length];
+
+   for(int i = 0; i< Lvalues.length ; i++){
+       equations[i] = createMathEquationObject(Lvalues[i],Rvalues[i],opcodes[i]);
+
+       //ok so basically what we want to do is create a MathEquation array, and store objects in them
+       //SO we're going to run a for loop, and create a new object
+   }
+
+
+
+
+
+
+
         double VAL1 = 0;
         double VAL2 = 0;
 
@@ -90,6 +105,15 @@ public class SwissArmyCalc {
 
 
         }
+    }
+
+    private static MathEquation createMathEquationObject(double lvalue, double rvalue, char opcode) {
+        MathEquation equation = new MathEquation();
+        equation.LVal = lvalue;
+        equation.RVal = rvalue;
+        equation.opCode = opcode;
+
+        return equation;
     }
 
     // EXECUTE METHOD:
