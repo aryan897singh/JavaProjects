@@ -23,12 +23,6 @@ public class SwissArmyCalc {
        //SO we're going to run a for loop, and create a new object
    }
 
-
-
-
-
-
-
         double VAL1 = 0;
         double VAL2 = 0;
 
@@ -71,13 +65,11 @@ public class SwissArmyCalc {
 
         else if(args.length == 1 && args[0].equals("interactive") ) {       // ALWAYS USE .equals() for comparison of 2 strings
 
-            System.out.println("NEW - Please Select one of the options from the following \n " +
+            System.out.println("\n Please Select one of the options from the following \n " +
                     "\n 1.Basic Arithmetic {Enter B}" +
                     "\n 2.Date Arithmetics {Enter D}" +
-                    "\n 3.Tax and Interest Calculator {Enter T}" +
-                    "\n 4.Age Calculator {Enter A}" +
-                    "\n 5.Unit Convertor {Enter U}"
-
+                    "\n 3.Tax and Interest Calculator {Enter T}"
+                    //"\n 5.Unit Convertor {Enter U}" - TO BE DONE IN FREE TIME
             );
 
             Scanner userCalcChoice = new Scanner(System.in);
@@ -208,7 +200,7 @@ public class SwissArmyCalc {
     //METHOD TO EXECUTE WHEN "interactive" ARG IS PASSED IN CMD LINE PROMPT AND USER INPUTS DATA IN INTELLIJ
     static void executeInteractively() {
         Scanner scanner = new Scanner(System.in); //declared Scanner var and named it scanner
-        String userInput = scanner.nextLine();
+        String userInput = scanner.nextLine(); //.nextLine(); will take a one line string from user
         String[] userInputArray = userInput.split(" ");//The split method for string returns back a string array
         //obtaining the operation
         char opcode = opCodeFromString(userInputArray[0]);
@@ -449,19 +441,152 @@ public class SwissArmyCalc {
             case "i":
                 handleIncometax();
                 break;
+
             case "s":
-                handleSimpleInterest();
+                System.out.println("Enter the Principal Amount: ");
+                double principalSimple = whichFianceTool.nextDouble();
+                System.out.println("Enter the annual interest % rate: ");
+                double interestPercent = whichFianceTool.nextDouble();
+                System.out.println("Enter the total number of years the money is deposited: ");
+                int years = whichFianceTool.nextInt();
+                handleSimpleInterest(principalSimple, interestPercent, years);
                 break;
+
             case "c":
-                handleCompoundInterest();
+                System.out.println("Enter the Principal Amount: ");
+                double principalCompound = whichFianceTool.nextDouble();
+                System.out.println("Enter the annual interest % rate: ");
+                double interestPercentCompound = whichFianceTool.nextDouble();
+
+                System.out.println("What kind of compound interest is it: " +
+                        "\n 1. Yearly {y}" +
+                        "\n 2. Quarterly {q}" +
+                        "\n 3. Monthly {m}");
+                String compType = whichFianceTool.next();
+
+
+                int compTypeInt;
+                switch (compType.toLowerCase().charAt(0)){
+                    case 'y':
+                        compTypeInt = 1;
+                        break;
+                    case 'q':
+                        compTypeInt = 4;
+                        break;
+                    case 'm':
+                        compTypeInt = 12;
+                        break;
+                    default:
+                        throw new IllegalStateException("Unexpected value: " + compType.toLowerCase().charAt(0));
+                }
+
+                System.out.println("Enter the total number of years: ");
+                int time = whichFianceTool.nextInt();
+
+                double TotalAmount = handleCompoundInterest(principalCompound, interestPercentCompound, compTypeInt, time);
+                double CompInterest = (handleCompoundInterest(principalCompound, interestPercentCompound, compTypeInt, time) - principalCompound);
+
+                String formatTotalAmt = String.format("%.2f", TotalAmount);
+                String formatCompIntrest = String.format("%.2f", CompInterest );
+                //Above two lines are to limit the value to only 2 digits
+
+                System.out.println("The interest amount is $" + formatTotalAmt );
+                System.out.println("So the total amount is $" + formatCompIntrest);
                 break;
         }
 
     }
 
-    private static void handleIncometax(){};
-    private static void handleSimpleInterest(){};
-    private static void handleCompoundInterest(){};
+    private static double handleCompoundInterest(double principalCompound, double interestPercentCompound, int compTypeInt, int time) {
+        double bracket = 1 + (interestPercentCompound/(100*compTypeInt));
+        double bracket1 = Math.pow(bracket, (compTypeInt*time));
+        double finalInterestAmount = principalCompound * bracket1;
+
+        return  finalInterestAmount;
+    }
+
+    private static void handleIncometax(){
+        Scanner input = new Scanner(System.in);
+        System.out.println("Are you married {M} or single {S} ?" );
+        String type = input.nextLine();
+
+        switch (type.toUpperCase()){
+            case "S":
+                System.out.println("What is your annual income amount");
+                double singleIncome = input.nextDouble();
+                System.out.println("The standard deduction for singles is $15,000, and so your taxable income is $" + (singleIncome-15000));
+                System.out.println("The tax you must pay for this year is: $" + handleSingleIncomeTax(singleIncome-15000));
+                break;
+            case "M":
+                System.out.println("What is your combined annual income amount");
+                double MarriedIncome = input.nextDouble();
+                System.out.println("The standard deduction for married couples is $30,000, and so your taxable income is $" + (MarriedIncome-30000));
+                System.out.println("The tax you must pay for this year is: $" + handleMarriedIncomeTax(MarriedIncome-30000));
+                break;
+
+            //In both of the cases, I have included the standard deduction so the calculator is as realistic as possible
+        }
+
+
+    }
+
+    private static double handleMarriedIncomeTax(double marriedIncome) {
+        double sum = 0;
+
+        double marriedIncomeTaxBracket[] = {0, 23850, 96950, 206700, 394600, 501050, 751600};
+        double marriedIncomeTaxRate[] = {0, 0.1,0.12,0.22,0.24,0.32,0.35};
+
+        for(int i = 1; i < marriedIncomeTaxBracket.length ; i++){
+            if(marriedIncome > (marriedIncomeTaxBracket[i] - marriedIncomeTaxBracket[i-1])){
+                sum += (marriedIncomeTaxBracket[i] - marriedIncomeTaxBracket[i-1]) * marriedIncomeTaxRate[i];
+                marriedIncome -= (marriedIncomeTaxBracket[i] - marriedIncomeTaxBracket[i-1]);
+            }
+            else{
+                sum += marriedIncome * marriedIncomeTaxRate[i];
+                break;
+            }
+        }
+
+        return sum;
+    }
+
+    private static double handleSingleIncomeTax(double singleIncome) {
+        double sum = 0;
+        //Handling till $11,925
+
+        double SingleTaxBracket[] = {0, 11925, 48475, 103350, 197300, 250525, 626350};
+        double SingleTaxPercent[] = {0,0.1,0.12,0.22,0.24,0.32,0.35,0.37};
+
+        for(int i = 1 ; i < SingleTaxBracket.length ; i++){
+            if (singleIncome > (SingleTaxBracket[i] - SingleTaxBracket[i-1])){
+                sum += (SingleTaxPercent[i] * (SingleTaxBracket[i]-SingleTaxBracket[i-1]));
+                singleIncome -= (SingleTaxBracket[i]-SingleTaxBracket[i-1]);
+            }
+            else {
+                sum += singleIncome * SingleTaxPercent[i];
+                break;
+            }
+
+
+
+
+
+        }
+
+
+         /*Goal - to distribute the income, and to see how much is left
+        M1 - To apply if conditions to check if the leftover is greater than the difference or not
+        M2 - To make a tax bracket array, and loop through the array - WAY more efficient*/
+
+        return sum;
+
+    }
+
+    private static void handleSimpleInterest(double principal, double interestPercent, int years) {
+        double interest = principal * (interestPercent/100) * years;
+        System.out.println("The total interest after " + years + " is " + " $" + interest);
+        System.out.println("So the total amount now is $" + (principal + interest));
+    }
 
 
     //Another learning is to write the function when needed, and pass the rqrd args even before creating it, click Alt + enter
